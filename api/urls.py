@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import UserList, UserDetail, categoriesList, categoriesDetail, ProductsList, ProductsDetail, CartList, CartDetail, ProductReviewList, ProductReviewDetail, payementList, payementDetail, OrderList, OrderDetail
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import UserList, UserDetail, categoriesList, categoriesDetail, ProductsList, ProductsDetail, CartList, CartDetail, ProductReviewList, ProductReviewDetail, payementList, payementDetail, OrderList, OrderDetail, RegisterView, LoginView
 urlpatterns = [
     path('users/', UserList.as_view(), name='user_list'),
     path('users/<uuid:pk>/', UserDetail.as_view(), name='user_detail'),
@@ -14,4 +15,12 @@ urlpatterns = [
     path('payement/<uuid:pk>/', payementDetail.as_view(), name='payement_detail'),
     path('order/', OrderList.as_view(), name='order_list'),
     path('order/<uuid:pk>/', OrderDetail.as_view(), name='order_detail'),
+    # Authentification JWT-------------------------------------------------------------
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
+
+
 ]

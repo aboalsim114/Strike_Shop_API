@@ -48,3 +48,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = '__all__'
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'email',
+                  'first_name', 'last_name', 'role']
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
