@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import generics, status, views
+from rest_framework import generics, status, views, permissions
 from .models import User, categories, Products, Cart, ProductReview, payement, Order, OrderItem
 from .serializers import UserSerializer, categoriesSerializer, ProductsSerializer, CartSerializer, ProductReviewSerializer, payementSerializer, OrderSerializer, OrderItemSerializer, RegisterSerializer
 from django.contrib.auth import authenticate, login, logout
@@ -111,12 +111,9 @@ class LoginView(views.APIView):
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-class CurrentUserView(views.APIView):
-    permission_classes = [IsAuthenticated]
+class UserProfileView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
 
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({'error': 'User not authenticated'}, status=403)
-
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+    def get_object(self):
+        return self.request.user
