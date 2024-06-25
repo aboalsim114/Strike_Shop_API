@@ -18,14 +18,13 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-class categoriesList(generics.ListCreateAPIView):
+class categoryListView(generics.ListCreateAPIView):
     queryset = categories.objects.all()
     serializer_class = categoriesSerializer
 
 class categoriesDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = categories.objects.all()
     serializer_class = categoriesSerializer
-
 class ProductsList(generics.ListCreateAPIView):
     queryset = Products.objects.all()
     serializer_class = ProductsSerializer
