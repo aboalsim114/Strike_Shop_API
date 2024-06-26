@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-$gx(pc5kzl+@p3rc!2i7y37@$g_tx962qz^93dt#yd@neh##9r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ALLOWED_HOSTS = ['proven-quietly-raptor.ngrok-free.app', '127.0.0.1', '192.168.8.23']
+ALLOWED_HOSTS = ALLOWED_HOSTS = ['proven-quietly-raptor.ngrok-free.app', '127.0.0.1', '192.168.11.54']
 CSRF_TRUSTED_ORIGINS = ['https://proven-quietly-raptor.ngrok-free.app']
 
 
