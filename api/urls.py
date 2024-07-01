@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
+    UserProfileUpdateView,
     UserList, UserDetail, categoryListView, UserProfileView, categoriesDetail, 
     ProductsList, ProductsDetail, CartList, CartDetail, ProductReviewList, 
     ProductReviewDetail, payementList, payementDetail, OrderList, OrderDetail, 
@@ -14,6 +15,7 @@ urlpatterns = [
     path('users/', UserList.as_view(), name='user_list'),
     path('users/<uuid:pk>/', UserDetail.as_view(), name='user_detail'),
     path('profile/', UserProfileView.as_view(), name='user_profile'),
+     path('profile/update/', UserProfileUpdateView.as_view(), name='user_profile_update'),
     path('categories/', categoryListView.as_view(), name='category-list'),
     path('categories/<uuid:pk>/', categoriesDetail.as_view(), name='categories_detail'),
     path('products/', ProductsList.as_view(), name='products_list'),
