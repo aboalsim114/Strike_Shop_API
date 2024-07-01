@@ -49,6 +49,13 @@ class ProductReviewDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ProductReview.objects.all()
     serializer_class = ProductReviewSerializer
 
+class ProductReviewListByProduct(generics.ListAPIView):
+    serializer_class = ProductReviewSerializer
+
+    def get_queryset(self):
+        product_id = self.kwargs['product_id']
+        return ProductReview.objects.filter(product_id=product_id)
+
 class payementList(generics.ListCreateAPIView):
     queryset = payement.objects.all()
     serializer_class = payementSerializer
