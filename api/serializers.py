@@ -73,3 +73,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
     
+
+
+class CreatePaymentIntentSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()

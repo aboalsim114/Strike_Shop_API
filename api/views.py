@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, status, views, permissions
 from .models import User, categories, Products, Cart, ProductReview, payement, Order, OrderItem
-from .serializers import UserSerializer, categoriesSerializer, ProductsSerializer, CartSerializer, ProductReviewSerializer, payementSerializer, OrderSerializer, OrderItemSerializer, RegisterSerializer
+from .serializers import UserSerializer, categoriesSerializer, ProductsSerializer, CartSerializer, ProductReviewSerializer, payementSerializer, OrderSerializer, OrderItemSerializer, RegisterSerializer,CreatePaymentIntentSerializer
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
@@ -9,7 +9,14 @@ from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from django.conf import settings
+import stripe
+from django.http import JsonResponse
+from django.views import View
+from rest_framework.views import APIView
 
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -133,3 +140,33 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+    
+
+
+
+
+
+
+
+
+
+class CreateStripePaymentIntentView(generics.CreateAPIView):
+    serializer_class = CreatePaymentIntentSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                amount = serializer.validated_data['amount']
+
+                intent = stripe.PaymentIntent.create(
+                    amount=amount,
+                    currency='usd',
+                    payment_method_types=['card'],
+                )
+
+                return Response({'clientSecret': intent['client_secret']})
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

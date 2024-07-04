@@ -12,10 +12,12 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
+import sys
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+sys.path.insert(0, os.path.join(BASE_DIR, 'lib', 'stripe-python-master'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -131,3 +133,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+
+
+STRIPE_SECRET_KEY = 'sk_test_51NjtbSIN5lMTju9QwbcavhQML1oaM43dQQcrVBwJNnlcX6dsteEBFK2YoQYaYyCSXfd6AmMgwLBDEeJdfAU93t8g00rG0SFxyd'
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51NjtbSIN5lMTju9QZenolzLqr3h1hTfrDTTSKERFshQBbMDZPdb16q3WsKaDy348JSrAwydNYvOYWlfqNI78N9GE00lyyN1nmK'
