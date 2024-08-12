@@ -8,7 +8,7 @@ from .views import (
     UserList, UserDetail, categoryListView, UserProfileView, categoriesDetail, 
     ProductsList, ProductsDetail, CartList, CartDetail, ProductReviewList, 
     ProductReviewDetail, payementList, payementDetail, OrderList, OrderDetail, 
-    RegisterView, LoginView ,ProcessPaymentView
+    RegisterView, LoginView ,ProcessPaymentView,UserOrdersView
 )
 
 urlpatterns = [
@@ -32,5 +32,6 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('orders/', UserOrdersView.as_view(), name='user-orders'),
 ]
 

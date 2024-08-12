@@ -40,12 +40,9 @@ class PaymentSerializer(serializers.Serializer):
     payment_method_id = serializers.CharField(max_length=255)
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = serializers.StringRelatedField(many=True)  
-
     class Meta:
         model = Order
-        fields = '__all__'
-
+        fields = ['id', 'status', 'total_amount', 'created_at', 'updated_at']
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem

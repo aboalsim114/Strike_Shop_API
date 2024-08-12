@@ -196,3 +196,26 @@ class ProcessPaymentView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+class UserOrdersView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Retourner uniquement les commandes de l'utilisateur connecté
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        ongoing_orders = queryset.filter(status='ongoing')
+        past_orders = queryset.filter(status__in=['completed', 'canceled'])
+
+        return Response({
+            'ongoing_orders': OrderSerializer(ongoing_orders, many=True).data,
+            'past_orders': OrderSerializer(past_orders, many=True).data
+        })
