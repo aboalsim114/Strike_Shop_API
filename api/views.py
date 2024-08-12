@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, status, views, permissions
-from .models import User, categories, Products, Cart, ProductReview, payement, Order, OrderItem
-from .serializers import UserSerializer, categoriesSerializer, ProductsSerializer, CartSerializer, ProductReviewSerializer, payementSerializer, OrderSerializer, OrderItemSerializer, RegisterSerializer,CreatePaymentIntentSerializer
+from .models import User, categories, Products, Cart, ProductReview, Payment, Order, OrderItem
+from .serializers import UserSerializer, categoriesSerializer, ProductsSerializer, CartSerializer, ProductReviewSerializer, PaymentSerializer, OrderSerializer, OrderItemSerializer, RegisterSerializer,CreatePaymentIntentSerializer
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
@@ -64,12 +64,12 @@ class ProductReviewListByProduct(generics.ListAPIView):
         return ProductReview.objects.filter(product_id=product_id)
 
 class payementList(generics.ListCreateAPIView):
-    queryset = payement.objects.all()
-    serializer_class = payementSerializer
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
 
 class payementDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = payement.objects.all()
-    serializer_class = payementSerializer
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
 
 class OrderList(generics.ListCreateAPIView):
     queryset = Order.objects.all()
@@ -150,23 +150,48 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
 
 
-class CreateStripePaymentIntentView(generics.CreateAPIView):
-    serializer_class = CreatePaymentIntentSerializer
+class ProcessPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PaymentSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                amount = serializer.validated_data['amount']
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            # Créer une intention de paiement avec l'option `allow_redirects` désactivée
+            intent = stripe.PaymentIntent.create(
+                amount=int(data['amount'] * 100),  # Stripe traite les montants en centimes
+                currency=data['currency'],
+                payment_method=data['payment_method_id'],
+                confirm=True,
+                automatic_payment_methods={
+                    "enabled": True,
+                    "allow_redirects": "never"  # Désactive les méthodes nécessitant des redirections
+                }
+            )
 
-                intent = stripe.PaymentIntent.create(
-                    amount=amount,
-                    currency='usd',
-                    payment_method_types=['card'],
+            if intent.status == 'succeeded':
+                # Créer la commande et enregistrer les détails du paiement
+                order = Order.objects.create(
+                    user=request.user,
+                    total_amount=data['amount'],
+                    status='completed'
                 )
 
-                return Response({'clientSecret': intent['client_secret']})
-            except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                Payment.objects.create(
+                    order=order,
+                    stripe_payment_intent_id=intent.id,
+                    amount=data['amount'],
+                    payment_status=intent.status
+                )
+
+                return Response({'message': 'Payment successful!'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Payment failed or requires additional action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except stripe.error.CardError as e:
+            # Gérer les cartes refusées
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

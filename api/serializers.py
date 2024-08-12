@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, categories, Products, Cart, ProductReview, payement, Order, OrderItem
+from .models import User, categories, Products, Cart, ProductReview, Payment, Order, OrderItem
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,23 +33,23 @@ class ProductReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class payementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = payement
-        fields = '__all__'
 
+class PaymentSerializer(serializers.Serializer):
+    amount = serializers.FloatField(min_value=1)
+    currency = serializers.CharField(max_length=3, default='eur')
+    payment_method_id = serializers.CharField(max_length=255)
 
 class OrderSerializer(serializers.ModelSerializer):
+    items = serializers.StringRelatedField(many=True)  
+
     class Meta:
         model = Order
         fields = '__all__'
-
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = '__all__'
-
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
