@@ -158,40 +158,41 @@ class ProcessPaymentView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         try:
-            # Créer une intention de paiement avec l'option `allow_redirects` désactivée
+            # Créer la commande associée
+            order = Order.objects.create(
+                user=request.user,
+                total_amount=data['amount'],
+                status='pending'  # ou un autre statut par défaut
+            )
+
+            # Créer un nouveau PaymentIntent sans redirections
             intent = stripe.PaymentIntent.create(
-                amount=int(data['amount'] * 100),  # Stripe traite les montants en centimes
+                amount=int(data['amount'] * 100),  # Montant en centimes
                 currency=data['currency'],
                 payment_method=data['payment_method_id'],
                 confirm=True,
-                automatic_payment_methods={
-                    "enabled": True,
-                    "allow_redirects": "never"  # Désactive les méthodes nécessitant des redirections
+                automatic_payment_methods={"enabled": True, "allow_redirects": "never"},
+                # Désactivation des redirections explicites
+                payment_method_options={
+                    "card": {
+                        "request_three_d_secure": "automatic",  # Demande automatique 3D Secure uniquement si nécessaire
+                    }
                 }
             )
 
-            if intent.status == 'succeeded':
-                # Créer la commande et enregistrer les détails du paiement
-                order = Order.objects.create(
-                    user=request.user,
-                    total_amount=data['amount'],
-                    status='completed'
-                )
+            # Sauvegarder le PaymentIntent et l'ordre
+            Payment.objects.create(
+                order=order,
+                stripe_payment_intent_id=intent.id,
+                amount=data['amount'],
+                payment_status='pending'
+            )
 
-                Payment.objects.create(
-                    order=order,
-                    stripe_payment_intent_id=intent.id,
-                    amount=data['amount'],
-                    payment_status=intent.status
-                )
+            return Response({'clientSecret': intent['client_secret']}, status=status.HTTP_200_OK)
 
-                return Response({'message': 'Payment successful!'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'message': 'Payment failed or requires additional action.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        except stripe.error.CardError as e:
-            # Gérer les cartes refusées
+        except stripe.error.StripeError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
