@@ -212,7 +212,7 @@ class UserOrdersView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        ongoing_orders = queryset.filter(status='ongoing')
+        ongoing_orders = queryset.filter(status='pending')
         past_orders = queryset.filter(status__in=['completed', 'canceled'])
 
         return Response({
